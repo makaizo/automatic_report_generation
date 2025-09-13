@@ -1,0 +1,277 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "fileSelector": "/Users/seiiji/sandbox/doc_gen/input/*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        256,
+        16
+      ],
+      "id": "ce094206-a957-431f-95bf-9f9026f8e508",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=過去の報告書の流れに従って、アンケート結果を要約し、Marp 形式に対応した Markdown ファイルを出力してください。\n\n入力ファイル: {{ $json.uri }}\n\n要件:\n- 出力は Marp に対応した正しい Markdown 形式とすること\n- スライド区切りには `---` を使用すること\n- 過去の報告書のスタイルに忠実に従い、構成すること。過去の報告書と全く同じスライド枚数、タイトルとして、内容のみを変更する。過去の報告書で表形式でまとめているものは、同様に表形式でまとめること。\n- 内容を記載するために情報が足りなければ文章を作成してください。\n- 会話や説明は一切含めず、**コードブロック（ ``` や ```markdown ）も一切使わず、Markdown 本文のみを出力すること\n\nuse markitdown-mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        16
+      ],
+      "id": "e007719e-df24-4192-891b-257d1ffa7b5e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        640,
+        192
+      ],
+      "id": "db742174-617a-4697-8a85-dc11c916e130",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "Mm7gwAfn9R34NnjM",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        32,
+        16
+      ],
+      "id": "694cc260-cee0-4e1e-87a1-92cdfa738f70",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://127.0.0.1:3001/mcp",
+        "serverTransport": "httpStreamable",
+        "options": {
+          "timeout": 600
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        208
+      ],
+      "id": "0f8d1861-a575-43a3-994b-cbdfba73e101",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "output = []\n\nfor item in _input.all():\n    file_uri = \"file:///Users/seiiji/sandbox/doc_gen/input/\" + item.json['fileName']\n    output.append({\n        \"json\": {\n            \"uri\": file_uri,\n        }\n    })\n\nreturn output\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        16
+      ],
+      "id": "84e8f0cf-6222-4fa2-a221-2cd56ddcf2ef",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=marp ~seiiji/sandbox/doc_gen/README.md --pptx  --allow-local-files "
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        16
+      ],
+      "id": "92912b54-eea1-4563-a19a-129db240ec0a",
+      "name": "Execute Command",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "notesInFlow": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "item = _input.item\ninput_md = item.json['fileName']\n\nreturn {\n    \"json\": {\n        \"command\": f\"npx @marp-team/marp-cli@latest {input_md} --pptx --allow-local-files\"\n    }\n}\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        16
+      ],
+      "id": "f10b223d-4c84-4712-a546-bf7fbe6e8764",
+      "name": "Code in Python (Beta)1"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/Users/seiiji/sandbox/doc_gen/output/output.md",
+        "dataPropertyName": "=data",
+        "options": {
+          "append": false
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        16
+      ],
+      "id": "5042a3ca-7f5d-4252-98ad-fdbd989e996a",
+      "name": "Read/Write Files from Disk1"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "output",
+        "options": {
+          "fileName": "output.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        16
+      ],
+      "id": "0eab9a3e-88ec-4b66-8538-9ca70db3f294",
+      "name": "Convert to File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)1": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "66a2b916-a0e7-4378-a15f-5e5e042541ab",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "def4973f1396d7f9b2eb3691b1bde60deb45eeb747d4647e938106ed1b294dcf"
+  },
+  "id": "65NfypTabwu6Hh7l",
+  "tags": []
+}
