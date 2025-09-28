@@ -1,48 +1,52 @@
-# Automatic report generation with n8n, markitdown-mcp, and Marp
+# Automatic Report Generation Toolkit
 
-This repository demonstrates an automated workflow that generates reports in the style of previous PowerPoint reports using n8n, markitdown-mcp, and Marp. The flow converts existing PowerPoint and Excel files into Markdown, processes the Markdown, and exports slides (PPTX/PDF) via Marp.
+This repository shows how to reproduce slide reports from previous projects by combining historical templates with new data. The workflow relies on [markitdown](https://github.com/microsoft/markitdown) to convert Excel and PowerPoint files into Markdown and on [Marp](https://marp.app/) to turn the final Markdown back into presentation slides.
 
-![](./images/flow.drawio.svg)
+![Workflow diagram](./images/flow.drawio.svg)
+
+## Repository Layout
+- `input/template/` – Original PowerPoint templates.
+- `input/data/` – New data sources (e.g., Excel files).
+- `output/` – Destination for the generated Marp Markdown reports.
+- `Agents.md` – Step-by-step instructions for AI coding agents.
+- `n8n_workflow.json` – Optional automation workflow for n8n users.
 
 ## Prerequisites
-- Node.js (recommended: 16+)
-- n8n
-- markitdown-mcp (HTTP mode)
-- Marp CLI (or Marp extension for VS Code)
+- [uv](https://github.com/astral-sh/uv) to run markitdown via `uvx`.
+- [Marp VS Code extension](https://github.com/marp-team/marp-vscode) or [Marp CLI](https://github.com/marp-team/marp-cli).
 
-## Usage
+## Two Options for Report Generation
+1. **VSCode + AI Agent** (claudecode, codex, cline, etc.):
+   you have to write the prompt and convert files manually but this it more flexible.
+2. **n8n Workflow**:
+   you can run the entire workflow automatically but this is less flexible.
 
-### 1. Start [n8n](https://github.com/n8n-io/n8n)
-Start n8n in your environment. Basic example:
-```
-npx n8n
-```
+## Option 1: VS Code + AI Agent
 
-Import the workflow from `n8n/workflow.json` into your n8n instance.
+1. **Open this repo in VS Code.**
+2. **Place your new data files** (e.g., `survey.xlsx`) in `input/data/` and your template files (e.g., `template.pptx`) in `input/template/`.
+3. **Launch your coding agent extension** (Claude Code, Codex, Cline, etc.) and share the prompt:
+   ```
+   can you make a new report using @input/template/xxx and @input/data/xxx?
+   please follow the instructions in @Agents.md carefully.
+   ```
+4. **Convert files and check the output**
+preview the generated `output/output.md` in Marp VS Code extension. you can adjust wording or formatting manually if needed.
 
-### 2. Start [markitdown-mcp](https://github.com/microsoft/markitdown/tree/main/packages/markitdown-mcp)
-Run markitdown-mcp as an HTTP server so the MCP client node in n8n can call its methods:
-```
-markitdown-mcp --http --host 127.0.0.1 --port 3001
-```
+## Option 2: n8n Workflow
 
-To verify the server is running, call the RPC endpoint:
-```
-curl -v http://127.0.0.1:3001/mcp/ \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","id":"1","method":"tools/list","params":{}}'
-```
+1. **Install and start n8n.**
+   ```
+   npx n8n
+   ```
+2. **Import** `n8n_workflow.json` into your n8n instance.
+3. **Run markitdown-mcp as a service** so the workflow can access conversion tools:
+   ```
+   markitdown-mcp --http --host 127.0.0.1 --port 3001
+   ```
+   Test the service with `curl` if needed.
+4. **Execute the workflow** inside n8n to produce the Markdown report in `output/`.
+5. **Export the final slides with Marp** as described above (n8n’s Execute Command node cannot run Marp-cli reliably, so this step remains manual).
 
-Configure the n8n "MCP Client" node to point at the markitdown-mcp server.
-
-![](images/2025-09-13-12-12-20.png)
-
-### 3. Convert Markdown to Powerpoint with Marp
-n8n's "Execute Command" node doesn't work, so run [Marp CLI](https://github.com/marp-team/marp-cli) manually or use [the Marp extension for VS Code](https://github.com/marp-team/marp-vscode) to convert the generated Markdown file to PPTX or PDF.
-There are [some issues related to that](https://community.n8n.io/t/the-execute-command-node-runs-indefinitely/158753
-), but I cannot find a solution yet.
-
-```
-npx @marp-team/marp-cli input.md --pptx --allow-local-files 
-```
+## Tips
+- If requirements change, update `Agents.md` so future reports follow the new rules.
