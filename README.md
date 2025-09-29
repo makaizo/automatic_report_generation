@@ -24,7 +24,7 @@ This repository shows how to reproduce slide reports from previous projects by c
 ## Option 1: VS Code + AI Agent
 
 1. **Open this repo in VS Code.**
-2. **Place your new data files** (e.g., `survey.xlsx`) in `input/data/` and your template files (e.g., `template.pptx`) in `input/template/`.
+2. **Place your new data files** (e.g., `survey.xlsx`) in `input/data/` and your template files (e.g., `template.pptx`) in `input/template/`. You can also add background images in `style/` if needed. Check the sample directory for reference.
 3. **Launch your coding agent extension** (Claude Code, Codex, Cline, etc.) and share the prompt:
    ```
    can you make a new report using @input/template/xxx and @input/data/xxx?
