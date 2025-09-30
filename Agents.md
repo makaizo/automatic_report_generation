@@ -22,7 +22,7 @@ Follow this guide to create a new slide report that matches the structure of pas
 - Pull figures, tables, and commentary from the converted data Markdown.
 - Keep table formats intact when recreating them in the report.
 - Insert slide breaks with `---` for every slide.
-- Add the background image from .\style\top.png to the first slide, from .\style\end.png to the last slide, and .\style\content.png to all other slides using Marp front matter comments.
+- Apply the background image .\style\top.png to the first slide, .\style\content.png to all other slides and create one additional new slide at the end with .\style\end.png. Use Marp front-matter comments to assign these background images.
 - When data is missing, write a short, reasonable sentence that keeps the narrative consistent.
 - Review the draft to ensure tone and terminology align with previous reports.
 
