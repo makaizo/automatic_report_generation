@@ -37,14 +37,15 @@ preview the generated `output/output.md` in Marp VS Code extension. you can adju
 
 1. **Install and start n8n.**
    ```
-   npx n8n
+   npm install -g n8n
+   n8n
    ```
 2. **Import** `n8n_workflow.json` into your n8n instance.
 3. **Run markitdown-mcp as a service** so the workflow can access conversion tools:
    ```
+   pip install markitdown-mcp
    markitdown-mcp --http --host 127.0.0.1 --port 3001
    ```
-   Test the service with `curl` if needed.
 4. **Execute the workflow** inside n8n to produce the Markdown report in `output/`.
 5. **Export the final slides with Marp** as described above (n8n’s Execute Command node cannot run Marp-cli reliably, so this step remains manual).
 

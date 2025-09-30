@@ -1,33 +1,33 @@
 {
-  "name": "My workflow",
+  "name": "automatic_report_generation",
   "nodes": [
     {
       "parameters": {
-        "fileSelector": "/Users/seiiji/sandbox/doc_gen/input/*",
+        "fileSelector": "={{ $json.project_path }}/input/template/*",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        256,
-        16
+        208,
+        0
       ],
-      "id": "ce094206-a957-431f-95bf-9f9026f8e508",
+      "id": "6fe4b8ce-4bda-4ade-b3ed-3c3354436721",
       "name": "Read/Write Files from Disk"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=過去の報告書の流れに従って、アンケート結果を要約し、Marp 形式に対応した Markdown ファイルを出力してください。\n\n入力ファイル: {{ $json.uri }}\n\n要件:\n- 出力は Marp に対応した正しい Markdown 形式とすること\n- スライド区切りには `---` を使用すること\n- 過去の報告書のスタイルに忠実に従い、構成すること。過去の報告書と全く同じスライド枚数、タイトルとして、内容のみを変更する。過去の報告書で表形式でまとめているものは、同様に表形式でまとめること。\n- 内容を記載するために情報が足りなければ文章を作成してください。\n- 会話や説明は一切含めず、**コードブロック（ ``` や ```markdown ）も一切使わず、Markdown 本文のみを出力すること\n\nuse markitdown-mcp",
+        "text": "=前提:\n- inputのデータは{{ $('Edit Fields').first().json.project_path }}/input\nにあります。\n- {{ $json.template }}は\n\"報告書のテンプレート\"です。\n- {{ $json.data.toString() }}\nは\"今回のデータ\"です。\n\n要求:\n\"報告書のテンプレート\"の流れに従って、\"今回のデータ\"を集約し、Marp 形式に対応した Markdown ファイルを出力してください。\n\n要件:\n- 出力は **Marp に対応した**正しい Markdown 形式とすること\n- ファイル冒頭に以下のように記載すること\n---\nmarp: true\npaginate: true   # ページ番号を表示する\n---\n- スライド区切りには `---` を使用すること\n- 報告書のテンプレートのスタイルに忠実に従い、構成すること。報告書のテンプレートと全く同じスライド枚数、タイトルとして、内容のみを変更する。報告書のテンプレートで表形式でまとめているものは、同様に表形式でまとめること。\n- 内容を記載するために情報が足りなければ文章を作成してください。\n- 会話や説明は一切含めず、**コードブロック（ ``` や ```markdown ）も一切使わず、Markdown 本文のみを出力すること\n\nuse markitdown-mcp",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        640,
-        16
+        816,
+        0
       ],
-      "id": "e007719e-df24-4192-891b-257d1ffa7b5e",
+      "id": "59392d8c-7168-4da5-857b-662f9fc27d3b",
       "name": "AI Agent"
     },
     {
@@ -37,14 +37,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        640,
-        192
+        816,
+        176
       ],
-      "id": "db742174-617a-4697-8a85-dc11c916e130",
+      "id": "3cf7507a-2265-4549-87c9-a5bf8fe31f02",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "Mm7gwAfn9R34NnjM",
+          "id": "BZcw04Pj23eaCBGd",
           "name": "OpenRouter account"
         }
       }
@@ -54,10 +54,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        32,
-        16
+        -224,
+        0
       ],
-      "id": "694cc260-cee0-4e1e-87a1-92cdfa738f70",
+      "id": "a8ad7d61-9ea3-4548-9e5c-b0000b1d1d49",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -65,44 +65,30 @@
         "endpointUrl": "http://127.0.0.1:3001/mcp",
         "serverTransport": "httpStreamable",
         "options": {
-          "timeout": 600
+          "timeout": 10000
         }
       },
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
       "typeVersion": 1.1,
       "position": [
-        784,
-        208
+        1024,
+        176
       ],
-      "id": "0f8d1861-a575-43a3-994b-cbdfba73e101",
+      "id": "f5047f24-bf8c-44b9-ab11-cbbf6d84ea43",
       "name": "MCP Client"
     },
     {
       "parameters": {
-        "language": "python",
-        "pythonCode": "output = []\n\nfor item in _input.all():\n    file_uri = \"file:///Users/seiiji/sandbox/doc_gen/input/\" + item.json['fileName']\n    output.append({\n        \"json\": {\n            \"uri\": file_uri,\n        }\n    })\n\nreturn output\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        464,
-        16
-      ],
-      "id": "84e8f0cf-6222-4fa2-a221-2cd56ddcf2ef",
-      "name": "Code in Python (Beta)"
-    },
-    {
-      "parameters": {
         "executeOnce": false,
-        "command": "=marp ~seiiji/sandbox/doc_gen/README.md --pptx  --allow-local-files "
+        "command": "={{ $json.command }}"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1584,
-        16
+        1792,
+        0
       ],
-      "id": "92912b54-eea1-4563-a19a-129db240ec0a",
+      "id": "6946d93d-d465-4ebe-a97f-fbcec388fd17",
       "name": "Execute Command",
       "retryOnFail": true,
       "maxTries": 2,
@@ -119,16 +105,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1392,
-        16
+        1600,
+        0
       ],
-      "id": "f10b223d-4c84-4712-a546-bf7fbe6e8764",
+      "id": "d5f67772-9451-491d-9d05-b881b719490e",
       "name": "Code in Python (Beta)1"
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "/Users/seiiji/sandbox/doc_gen/output/output.md",
+        "fileName": "={{ $('Edit Fields').first().json.project_path }}/output/output.md",
         "dataPropertyName": "=data",
         "options": {
           "append": false
@@ -137,10 +123,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        1200,
-        16
+        1376,
+        0
       ],
-      "id": "5042a3ca-7f5d-4252-98ad-fdbd989e996a",
+      "id": "83d49a9f-7997-4c96-9c54-88a53f19cb13",
       "name": "Read/Write Files from Disk1"
     },
     {
@@ -154,11 +140,126 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        992,
-        16
+        1168,
+        0
       ],
-      "id": "0eab9a3e-88ec-4b66-8538-9ca70db3f294",
+      "id": "700305da-81d1-4d69-a088-4f88bd94ed2e",
       "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "88e83896-0983-454d-909c-6c36e4842958",
+              "name": "project_path",
+              "value": "C:/automatic_report_generation",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "a5ef257b-81e2-460e-ab0f-b19b44a1bf92",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "command": "=if not exist \"{{ $json.project_path }}/output\" mkdir \"{{ $json.project_path }}/output\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -192
+      ],
+      "id": "cff5d903-0bec-407f-bdbb-f94dd5f60c11",
+      "name": "Execute Command1",
+      "notes": "# for windows\nif not exist \"{{ $json.input_folder_path }}/output\" mkdir \"{{ $json.input_folder_path }}/output\"\n\n# for mac/linux\nmkdir -p \"{{ $json.input_folder_path }}/output\""
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.project_path }}/input/data/*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        208,
+        192
+      ],
+      "id": "ab0fa818-e597-4d16-a142-16a648aa20cc",
+      "name": "Read/Write Files from Disk2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d25705df-edf0-43cb-ac4a-948c232f52c4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# output = []\n# for item in _input.all():\n#     file_uri = _('Edit Fields').first().json.input_folder_path + \"/\" + item.json['fileName']\n#     output.append({\n#         \"json\": {\n#             \"uri\": file_uri,\n#         }\n#     })\n\n# return output\n\n\n# return [{\n#   \"template\": \"C:/Users/10001244206/Downloads/tmp/tesla_report/report.pptx\",\n#   \"data\": \"C:/Users/10001244206/Downloads/tmp/tesla_report/questionnaire.xlsx\"\n# }]\n# return [{\n#   \"json\": {\n#   \"template\": items[0].json.fileName,\n#   \"data\": items[1].json.fileName\n#   }\n# }]\n\n\n# \"items\" contains all input data from previous nodes\n# items[0] = template\n# items[1..] = data files\n\nimport json\n\nproject_path = _('Edit Fields').first().json.project_path\n\ntemplate = project_path + \"/input/template/\" + items[0].json.fileName\n\n# Collect all data file paths\ndata_files = {}\nfor i, item in enumerate(items[1:], start=1):\n    data_files[f\"data{i}\"] = project_path + \"/input/data/\" + item.json.fileName\n\nreturn [{\n    \"json\": {\n        \"template\": template,\n        \"data\": json.dumps(data_files, ensure_ascii=False)  # 次のノードで認識できるようにJSONから文字列化\n    }\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        0
+      ],
+      "id": "33b66b22-972e-478b-b1cf-ecc09b8673b8",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "content": "## Fix Edit Fields\n\nset the variable \"project_path\" to your desired location"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "aaba9c8d-c7a8-4af1-a3cc-b6d5ab432773",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### Fix Execute Command for Mac or Linux\n\nset the command script following the settings tab."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "26edcd36-6c0e-419b-a7b0-6613fc38d587",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Set OpenRouter API key"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "9a1131b5-3d17-44ae-a5ff-8e59b866314b",
+      "name": "Sticky Note2"
     }
   ],
   "pinData": {},
@@ -167,7 +268,7 @@
       "main": [
         [
           {
-            "node": "Code in Python (Beta)",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -189,7 +290,7 @@
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk",
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
@@ -202,17 +303,6 @@
           {
             "node": "AI Agent",
             "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in Python (Beta)": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
             "index": 0
           }
         ]
@@ -261,17 +351,79 @@
           }
         ]
       ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command1": {
+      "main": [
+        []
+      ]
+    },
+    "Read/Write Files from Disk2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1
   },
-  "versionId": "66a2b916-a0e7-4378-a15f-5e5e042541ab",
+  "versionId": "051c57aa-7b95-41da-9d32-bac060aadc55",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "def4973f1396d7f9b2eb3691b1bde60deb45eeb747d4647e938106ed1b294dcf"
+    "instanceId": "02bf1f599d7dcf9601a07e7de4eb567f64156c7a6321ff68e7a71c8f9efebc73"
   },
-  "id": "65NfypTabwu6Hh7l",
+  "id": "7itHeG0wTzMpImM8",
   "tags": []
 }
